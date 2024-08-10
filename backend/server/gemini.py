@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from dotenv import load_dotenv
 
+
 # Load environment variables from the .env file
 load_dotenv()
 
@@ -12,10 +13,16 @@ app = Flask(__name__)
 
 genai.configure(api_key=SECRET_KEY)
 
-@app.route('/generate', methods=['POST'])
+@app.route('/generate', methods=['GET','POST'])
 def generate_text():
-    data = request.get_json()
-    curDisease = data['disease']
+    if request.method == 'GET':
+        curDisease = request.args.get('disease')
+        print("cD: ",curDisease)
+    else:  # POST request
+        data = request.get_json()
+        curDisease = data.get('disease')
+    # data = request.get_json()
+    # curDisease = data['disease']
     final_prompt = (
     f'For the crop disease: "{curDisease}", return only a JSON response with the following details: '
     '{"best_pesticide":, "amount_per_acre":, "recovery_time":}. '
@@ -41,4 +48,4 @@ def generate_text():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
