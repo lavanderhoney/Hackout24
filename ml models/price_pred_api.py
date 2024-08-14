@@ -109,18 +109,22 @@ class Commodity:
 
 @app.route("/price_predict/cur_month")
 def CurrentMonth():
-    current_month = datetime.now().month
-    current_year = datetime.now().year
-    current_rainfall = annual_rainfall[current_month - 1]
-    name = request.args.get('cropname').lower()
-    commodity = commodity_list[0]
-    for i in commodity_list:
-        if name == str(i):
-            commodity = i
-            break
-    current_wpi = commodity.getPredictedValue([float(current_month), current_year, current_rainfall])
-    current_price = (base[name.capitalize()]*current_wpi)/100
-    return jsonify({"price prediction": current_price})
+    try:
+        current_month = datetime.now().month
+        current_year = datetime.now().year
+        current_rainfall = annual_rainfall[current_month - 1]
+        name = request.args.get('cropname').lower()
+        commodity = commodity_list[0]
+        for i in commodity_list:
+            if name == str(i):
+                commodity = i
+                break
+        current_wpi = commodity.getPredictedValue([float(current_month), current_year, current_rainfall])
+        current_price = (base[name.capitalize()]*current_wpi)/100
+        return jsonify({"price prediction": current_price})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route("/price_predict/twelve_forecast")
 def TwelveMonthsForecast():
@@ -167,7 +171,7 @@ def TwelveMonthsForecast():
         m, y, r = month_with_year[i]
         x = datetime(y, m, 1)
         x = x.strftime("%b %y")
-        crop_price.append([x, round((wpis[i]* base[name.capitalize()]) / 100, 2) , round(change[i], 2)])
+        crop_price.append([x, round((wpis[i]* base[name.capitalize()]) / 100, 2)])
    # print("forecasr", wpis)
     x = datetime(max_year,max_month,1)
     x = x.strftime("%b %y")
@@ -226,4 +230,4 @@ if __name__ == "__main__":
     wheat = Commodity(commodity_dict["wheat"])
     commodity_list.append(wheat)
 
-    app.run()
+    app.run(port=5000, debug=True)
